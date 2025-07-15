@@ -2,6 +2,7 @@
 
 import os
 import base64
+import urllib.parse
 import httpx
 from fastapi import HTTPException
 from dotenv import load_dotenv
@@ -112,7 +113,9 @@ async def scan_repo_tree(
     if current_depth > max_depth:
         return []
 
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
+    encoded_path = urllib.parse.quote(path)
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{encoded_path}?ref={branch}"
+
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=HEADERS)
 

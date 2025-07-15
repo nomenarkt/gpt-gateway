@@ -1,11 +1,13 @@
 # services/github_api.py
 
 import os
+import base64
 import httpx
 from fastapi import HTTPException
 from dotenv import load_dotenv
 
 load_dotenv()
+
 GITHUB_API = "https://api.github.com"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
@@ -18,10 +20,10 @@ HEADERS = {
 }
 
 
-async def get_file_sha(owner: str, repo: str, path: str, branch: str) -> str:
+async def get_file_sha(owner: str, repo: str, path: str, branch: str = "main") -> str | None:
     """
-    Return the SHA of a file if it exists on the specified branch.
-    Required for updating an existing file on GitHub.
+    Get SHA of a file at a specific path and branch.
+    Returns None if the file does not exist.
     """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
 
@@ -29,12 +31,11 @@ async def get_file_sha(owner: str, repo: str, path: str, branch: str) -> str:
         response = await client.get(url, headers=HEADERS)
 
         if response.status_code == 404:
-            return None  # File does not exist (new file)
-        elif response.status_code != 200:
+            return None
+        if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail="Failed to get file SHA")
 
-        data = response.json()
-        return data.get("sha")
+        return response.json().get("sha")
 
 
 async def write_file_to_repo(
@@ -44,15 +45,13 @@ async def write_file_to_repo(
     path: str,
     content: str,
     message: str,
-    sha: str = None,
-    author: dict = None,
+    sha: str | None = None,
+    author: dict | None = None,
 ):
     """
-    Create or update a file in a given repo and branch.
-    If SHA is provided, it's treated as an update; otherwise, a new file.
+    Create or update a file on GitHub.
     """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
-
     payload = {
         "message": message,
         "content": content,
@@ -61,6 +60,7 @@ async def write_file_to_repo(
 
     if sha:
         payload["sha"] = sha
+
     if author:
         payload["committer"] = {
             "name": author.get("name", "GPT Agent"),
@@ -81,7 +81,7 @@ async def write_file_to_repo(
 
 async def list_files_in_path(owner: str, repo: str, path: str, branch: str = "main") -> list:
     """
-    List all files and directories under a given path on a specified branch.
+    List contents of a directory path on GitHub.
     """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
 
@@ -97,7 +97,14 @@ async def list_files_in_path(owner: str, repo: str, path: str, branch: str = "ma
         return response.json()
 
 
-async def scan_repo_tree(owner: str, repo: str, path: str, branch: str = "main", max_depth: int = 5, current_depth: int = 0) -> list:
+async def scan_repo_tree(
+    owner: str,
+    repo: str,
+    path: str = "",
+    branch: str = "main",
+    max_depth: int = 5,
+    current_depth: int = 0
+) -> list:
     """
     Recursively scan a GitHub repo path up to a given depth.
     Returns a nested list of files and folders.
@@ -109,36 +116,39 @@ async def scan_repo_tree(owner: str, repo: str, path: str, branch: str = "main",
     async with httpx.AsyncClient() as client:
         response = await client.get(url, headers=HEADERS)
 
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=f"Failed to read path: {path}")
+    if response.status_code == 404:
+        raise HTTPException(status_code=404, detail=f"Path not found: {path}")
+    elif response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=f"Failed to read path: {path}")
 
-        items = response.json()
-        if not isinstance(items, list):
-            return []
+    items = response.json()
+    if not isinstance(items, list):
+        return []
 
-        result = []
-        for item in items:
-            entry = {
-                "name": item["name"],
-                "path": item["path"],
-                "type": item["type"]
-            }
+    result = []
+    for item in items:
+        entry = {
+            "name": item["name"],
+            "path": item["path"],
+            "type": item["type"],
+        }
 
-            if item["type"] == "dir":
-                entry["children"] = await scan_repo_tree(
-                    owner, repo, path=item["path"],
-                    branch=branch,
-                    max_depth=max_depth,
-                    current_depth=current_depth + 1
-                )
+        if item["type"] == "dir":
+            entry["children"] = await scan_repo_tree(
+                owner, repo, path=item["path"],
+                branch=branch,
+                max_depth=max_depth,
+                current_depth=current_depth + 1
+            )
 
-            result.append(entry)
+        result.append(entry)
 
-        return result
+    return result
+
 
 async def read_file_content(owner: str, repo: str, path: str, branch: str = "main") -> str:
     """
-    Reads the raw content of a file (Base64 decoded) from a GitHub repository.
+    Read and decode a file's base64 content from GitHub.
     """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
 
@@ -152,8 +162,8 @@ async def read_file_content(owner: str, repo: str, path: str, branch: str = "mai
             )
 
         data = response.json()
-        encoded_content = data.get("content", "")
+        content = data.get("content", "")
         if data.get("encoding") != "base64":
-            raise HTTPException(status_code=400, detail="Unexpected file encoding")
+            raise HTTPException(status_code=400, detail="Unexpected encoding")
 
-        return base64.b64decode(encoded_content).decode("utf-8")
+        return base64.b64decode(content).decode("utf-8")

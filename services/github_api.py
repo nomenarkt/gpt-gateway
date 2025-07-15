@@ -95,3 +95,43 @@ async def list_files_in_path(owner: str, repo: str, path: str, branch: str = "ma
             )
 
         return response.json()
+
+
+async def scan_repo_tree(owner: str, repo: str, path: str, branch: str = "main", max_depth: int = 5, current_depth: int = 0) -> list:
+    """
+    Recursively scan a GitHub repo path up to a given depth.
+    Returns a nested list of files and folders.
+    """
+    if current_depth > max_depth:
+        return []
+
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=HEADERS)
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=f"Failed to read path: {path}")
+
+        items = response.json()
+        if not isinstance(items, list):
+            return []
+
+        result = []
+        for item in items:
+            entry = {
+                "name": item["name"],
+                "path": item["path"],
+                "type": item["type"]
+            }
+
+            if item["type"] == "dir":
+                entry["children"] = await scan_repo_tree(
+                    owner, repo, path=item["path"],
+                    branch=branch,
+                    max_depth=max_depth,
+                    current_depth=current_depth + 1
+                )
+
+            result.append(entry)
+
+        return result

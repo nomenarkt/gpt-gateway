@@ -77,3 +77,21 @@ async def write_file_to_repo(
             )
 
         return response.json()
+
+
+async def list_files_in_path(owner: str, repo: str, path: str, branch: str = "main") -> list:
+    """
+    List all files and directories under a given path on a specified branch.
+    """
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=HEADERS)
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Failed to list files in {path}"
+            )
+
+        return response.json()

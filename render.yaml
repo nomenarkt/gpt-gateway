@@ -1,0 +1,13 @@
+# render.yaml
+
+services:
+  - type: web
+    name: gpt-gateway
+    runtime: python
+    repo: https://github.com/nomenarkt/gpt-gateway  # optional; Render can detect this
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: GITHUB_TOKEN
+        sync: false  # Set manually in Render dashboard

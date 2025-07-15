@@ -135,3 +135,25 @@ async def scan_repo_tree(owner: str, repo: str, path: str, branch: str = "main",
             result.append(entry)
 
         return result
+
+async def read_file_content(owner: str, repo: str, path: str, branch: str = "main") -> str:
+    """
+    Reads the raw content of a file (Base64 decoded) from a GitHub repository.
+    """
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=HEADERS)
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Failed to read file: {path}"
+            )
+
+        data = response.json()
+        encoded_content = data.get("content", "")
+        if data.get("encoding") != "base64":
+            raise HTTPException(status_code=400, detail="Unexpected file encoding")
+
+        return base64.b64decode(encoded_content).decode("utf-8")

@@ -1,8 +1,8 @@
 # main.py
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from pathlib import Path
@@ -45,6 +45,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Logging middleware (optional for debugging)
+@app.middleware("http")
+async def log_all_requests(request: Request, call_next):
+    print(f"🛰 {request.method} {request.url}")
+    return await call_next(request)
+
 # Register routes
 app.include_router(list_files_router, prefix="/list-files", tags=["Files"])
 app.include_router(read_file_router, prefix="/read-file", tags=["Files"])
@@ -55,6 +61,11 @@ app.include_router(write_file_router, prefix="/write-file", tags=["Files"])
 @app.get("/", tags=["Root"])
 def read_root():
     return {"status": "ok", "message": "GPT Gateway is running"}
+
+# HEAD request for root (required by OpenAI)
+@app.head("/", include_in_schema=False)
+def head_root():
+    return JSONResponse(content=None, status_code=200)
 
 # Serve OpenAPI spec
 @app.get("/openapi.yaml", include_in_schema=False)

@@ -44,3 +44,19 @@ app.include_router(write_file_router, prefix="/write-file", tags=["Files"])
 @app.get("/", tags=["Root"])
 def read_root():
     return {"status": "ok", "message": "GPT Gateway is running"}
+
+
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+# Serve OpenAPI spec
+@app.get("/openapi.yaml", include_in_schema=False)
+def serve_openapi():
+    return FileResponse("openapi.yaml", media_type="text/yaml")
+
+# Serve ai-plugin.json from .well-known/
+app.mount(
+    "/.well-known",
+    StaticFiles(directory=".well-known", html=False),
+    name="well-known"
+)

@@ -2,7 +2,10 @@
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+from pathlib import Path
 import os
 
 # Import route handlers
@@ -17,6 +20,14 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 if not GITHUB_TOKEN:
     raise RuntimeError("Missing GITHUB_TOKEN in environment")
+
+# Resolve base directory
+BASE_DIR = Path(__file__).resolve().parent
+
+# Verify required static directory
+WELL_KNOWN_DIR = BASE_DIR / ".well-known"
+if not WELL_KNOWN_DIR.is_dir():
+    raise RuntimeError("Missing `.well-known` directory required for plugin manifest")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -45,18 +56,14 @@ app.include_router(write_file_router, prefix="/write-file", tags=["Files"])
 def read_root():
     return {"status": "ok", "message": "GPT Gateway is running"}
 
-
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
-
 # Serve OpenAPI spec
 @app.get("/openapi.yaml", include_in_schema=False)
 def serve_openapi():
-    return FileResponse("openapi.yaml", media_type="text/yaml")
+    return FileResponse(BASE_DIR / "openapi.yaml", media_type="text/yaml")
 
 # Serve ai-plugin.json from .well-known/
 app.mount(
     "/.well-known",
-    StaticFiles(directory=".well-known", html=False),
+    StaticFiles(directory=WELL_KNOWN_DIR, html=False),
     name="well-known"
 )

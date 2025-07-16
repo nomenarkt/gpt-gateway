@@ -1,0 +1,309 @@
+openapi: 3.1.0
+info:
+  title: GPT Gateway
+  version: 1.0.0
+servers:
+  - url: https://gpt-gateway-cigu.onrender.com
+tags:
+  - name: GitHub Files
+
+paths:
+  /list-files/:
+    get:
+      tags: [GitHub Files]
+      summary: List all files in a given GitHub repo path
+      operationId: listFiles
+      x-gpt:
+        isAction: true
+        description: "List all files and directories at a given path in a GitHub repository"
+      parameters:
+        - name: owner
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: branch
+          in: query
+          required: false
+          schema:
+            type: string
+            default: main
+      responses:
+        '200':
+          description: List of files returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                        type:
+                          type: string
+              examples:
+                success:
+                  value:
+                    files:
+                      - path: "backend/main.py"
+                        type: "file"
+                      - path: "backend/actions/"
+                        type: "dir"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+
+  /read-file/:
+    get:
+      tags: [GitHub Files]
+      summary: Read the raw content of a file
+      operationId: readFile
+      x-gpt:
+        isAction: true
+        description: "Read and return the raw contents of a file in a GitHub repository"
+      parameters:
+        - name: owner
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: branch
+          in: query
+          required: false
+          schema:
+            type: string
+            default: main
+      responses:
+        '200':
+          description: File content returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+              examples:
+                success:
+                  value:
+                    content: "print('Hello from GitHub')"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+
+  /scan-repo/:
+    post:
+      tags: [GitHub Files]
+      summary: Recursively scan a folder
+      operationId: scanRepo
+      x-gpt:
+        isAction: true
+        description: "Recursively scan a GitHub repository path and return its structure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner:
+                  type: string
+                repo:
+                  type: string
+                path:
+                  type: string
+                branch:
+                  type: string
+                  default: main
+                depth:
+                  type: integer
+                  default: 5
+              required:
+                - owner
+                - repo
+                - path
+      responses:
+        '200':
+          description: Recursive structure returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                        type:
+                          type: string
+              examples:
+                success:
+                  value:
+                    status: "success"
+                    files:
+                      - path: "backend/main.py"
+                        type: "file"
+                      - path: "backend/actions/"
+                        type: "dir"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+
+  /write-file/:
+    put:
+      tags: [GitHub Files]
+      summary: Create or update a file in the repo
+      operationId: writeFile
+      x-gpt:
+        isAction: true
+        description: "Write or update a file in a GitHub repository with commit message"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner:
+                  type: string
+                repo:
+                  type: string
+                branch:
+                  type: string
+                path:
+                  type: string
+                content:
+                  type: string
+                message:
+                  type: string
+                author:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      default: GPT Agent
+                    email:
+                      type: string
+                      default: gpt-agent@nomena.dev
+              required:
+                - owner
+                - repo
+                - branch
+                - path
+                - content
+                - message
+      responses:
+        '200':
+          description: File written or updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  commit_sha:
+                    type: string
+                  commit_url:
+                    type: string
+              examples:
+                success:
+                  value:
+                    status: "success"
+                    message: "File committed successfully"
+                    commit_sha: "f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
+                    commit_url: "https://github.com/your-org/your-repo/commit/f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string

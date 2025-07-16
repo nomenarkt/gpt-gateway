@@ -1,21 +1,15 @@
 openapi: 3.1.0
 info:
   title: GPT Gateway
+  description: FastAPI middleware to list, read, write, and scan GitHub repositories for use in GPT Actions.
   version: 1.0.0
 servers:
   - url: https://gpt-gateway-cigu.onrender.com
-tags:
-  - name: GitHub Files
-
 paths:
   /list-files/:
     get:
-      tags: [GitHub Files]
-      summary: List all files in a given GitHub repo path
       operationId: listFiles
-      x-gpt:
-        isAction: true
-        description: "List all files and directories at a given path in a GitHub repository"
+      summary: List files in a GitHub repository path
       parameters:
         - name: owner
           in: query
@@ -29,7 +23,7 @@ paths:
             type: string
         - name: path
           in: query
-          required: true
+          required: false
           schema:
             type: string
         - name: branch
@@ -37,37 +31,33 @@ paths:
           required: false
           schema:
             type: string
-            default: main
       responses:
         '200':
-          description: List of files returned
+          description: Success listing files
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                  path:
+                    type: string
                   files:
                     type: array
                     items:
                       type: object
                       properties:
+                        name:
+                          type: string
                         path:
                           type: string
                         type:
                           type: string
-        '400':
-          description: Bad request
-        '500':
-          description: Internal error
-
   /read-file/:
     get:
-      tags: [GitHub Files]
-      summary: Read the raw content of a file
       operationId: readFile
-      x-gpt:
-        isAction: true
-        description: "Read and return the raw contents of a file in a GitHub repository"
+      summary: Read content of a file in a GitHub repository
       parameters:
         - name: owner
           in: query
@@ -89,37 +79,79 @@ paths:
           required: false
           schema:
             type: string
-            default: main
       responses:
         '200':
-          description: File content returned
+          description: Success reading file
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                  path:
+                    type: string
                   content:
                     type: string
-        '400':
-          description: Bad request
-        '500':
-          description: Internal error
-
-  /scan-repo/:
-    post:
-      tags: [GitHub Files]
-      summary: Recursively scan a folder
-      operationId: scanRepo
-      x-gpt:
-        isAction: true
-        description: "Recursively scan a GitHub repository path and return its structure"
+  /write-file/:
+    put:
+      operationId: writeFile
+      summary: Write or update a file in a GitHub repository
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [owner, repo, path]
+              required:
+                - owner
+                - repo
+                - branch
+                - path
+                - content
+                - message
+              properties:
+                owner:
+                  type: string
+                repo:
+                  type: string
+                branch:
+                  type: string
+                path:
+                  type: string
+                content:
+                  type: string
+                message:
+                  type: string
+                author_name:
+                  type: string
+                author_email:
+                  type: string
+      responses:
+        '200':
+          description: File written or updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  result:
+                    type: object
+  /scan-repo/:
+    post:
+      operationId: scanRepo
+      summary: Recursively scan a GitHub repository path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - owner
+                - repo
               properties:
                 owner:
                   type: string
@@ -129,13 +161,11 @@ paths:
                   type: string
                 branch:
                   type: string
-                  default: main
                 depth:
                   type: integer
-                  default: 5
       responses:
         '200':
-          description: Recursive structure returned
+          description: Recursive tree structure
           content:
             application/json:
               schema:
@@ -158,83 +188,3 @@ paths:
                           type: array
                           items:
                             type: object
-                            properties:
-                              name:
-                                type: string
-                              path:
-                                type: string
-                              type:
-                                type: string
-                              children:
-                                type: array
-                                items:
-                                  type: object
-                                  properties:
-                                    name:
-                                      type: string
-                                    path:
-                                      type: string
-                                    type:
-                                      type: string
-        '400':
-          description: Bad request
-        '500':
-          description: Internal error
-
-  /write-file/:
-    put:
-      tags: [GitHub Files]
-      summary: Create or update a file in the repo
-      operationId: writeFile
-      x-gpt:
-        isAction: true
-        description: "Write or update a file in a GitHub repository with commit message"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [owner, repo, branch, path, content, message]
-              properties:
-                owner:
-                  type: string
-                repo:
-                  type: string
-                branch:
-                  type: string
-                path:
-                  type: string
-                content:
-                  type: string
-                message:
-                  type: string
-                author:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      default: GPT Agent
-                    email:
-                      type: string
-                      default: gpt-agent@nomena.dev
-      responses:
-        '200':
-          description: File written or updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  message:
-                    type: string
-                  commit_sha:
-                    type: string
-                  commit_url:
-                    type: string
-        '400':
-          description: Bad request
-        '500':
-          description: Internal error

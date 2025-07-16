@@ -18,7 +18,12 @@ def test_root():
 def test_list_files():
     response = client.get(f"/list-files/?owner={OWNER}&repo={REPO}&path={TEST_PATH}&branch={BRANCH}")
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+
+    data = response.json()
+    assert isinstance(data, dict)
+    assert "files" in data
+    assert isinstance(data["files"], list)
+
 
 def test_scan_repo():
     payload = {

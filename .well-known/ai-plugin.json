@@ -3,7 +3,7 @@
   "name_for_human": "GPT Gateway",
   "name_for_model": "gpt_gateway",
   "description_for_human": "List, read, write and scan GitHub repo contents via GPT.",
-  "description_for_model": "Access GitHub repository files: list paths, read and write files, and scan directory structures. Ideal for GPTs acting as software engineers.",
+  "description_for_model": "Access GitHub repositories: list directory contents, read/write files, and recursively scan folders. Suitable for GPTs acting as software engineers.",
   "auth": {
     "type": "none"
   },
@@ -13,6 +13,7 @@
     "has_user_authentication": false
   },
   "logo_url": "https://gpt-gateway-cigu.onrender.com/logo.png",
-  "contact_email": "support@nomena.dev",
+  "contact_email": "nomenaarison@gmail.com",
   "legal_info_url": "https://gpt-gateway-cigu.onrender.com/legal"
 }
+

@@ -46,10 +46,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                  path:
-                    type: string
                   files:
                     type: array
                     items:
@@ -59,34 +55,10 @@ paths:
                           type: string
                         type:
                           type: string
-              examples:
-                success:
-                  value:
-                    status: "success"
-                    path: ""
-                    files:
-                      - path: "backend/main.py"
-                        type: "file"
-                      - path: "backend/actions/"
-                        type: "dir"
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
         '500':
           description: Internal error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
 
   /read-file/:
     get:
@@ -126,36 +98,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                  path:
-                    type: string
                   content:
                     type: string
-              examples:
-                success:
-                  value:
-                    status: "success"
-                    path: "README.md"
-                    content: "print('Hello from GitHub')"
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
         '500':
           description: Internal error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
 
   /scan-repo/:
     post:
@@ -171,6 +119,7 @@ paths:
           application/json:
             schema:
               type: object
+              required: [owner, repo, path]
               properties:
                 owner:
                   type: string
@@ -184,10 +133,6 @@ paths:
                 depth:
                   type: integer
                   default: 5
-              required:
-                - owner
-                - repo
-                - path
       responses:
         '200':
           description: Recursive structure returned
@@ -201,41 +146,40 @@ paths:
                   tree:
                     type: array
                     items:
-                      $ref: '#/components/schemas/TreeNode'
-              examples:
-                success:
-                  value:
-                    status: "success"
-                    tree:
-                      - name: ".github"
-                        path: ".github"
-                        type: "dir"
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        path:
+                          type: string
+                        type:
+                          type: string
                         children:
-                          - name: "workflows"
-                            path: ".github/workflows"
-                            type: "dir"
-                            children:
-                              - name: "test.yml"
-                                path: ".github/workflows/test.yml"
-                                type: "file"
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              path:
+                                type: string
+                              type:
+                                type: string
+                              children:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                    path:
+                                      type: string
+                                    type:
+                                      type: string
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
         '500':
           description: Internal error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
 
   /write-file/:
     put:
@@ -251,6 +195,7 @@ paths:
           application/json:
             schema:
               type: object
+              required: [owner, repo, branch, path, content, message]
               properties:
                 owner:
                   type: string
@@ -273,13 +218,6 @@ paths:
                     email:
                       type: string
                       default: gpt-agent@nomena.dev
-              required:
-                - owner
-                - repo
-                - branch
-                - path
-                - content
-                - message
       responses:
         '200':
           description: File written or updated
@@ -290,48 +228,13 @@ paths:
                 properties:
                   status:
                     type: string
-                  result:
-                    type: object
-              examples:
-                success:
-                  value:
-                    status: "success"
-                    result:
-                      content:
-                        sha: "f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
-                      commit:
-                        html_url: "https://github.com/your-org/your-repo/commit/f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
+                  message:
+                    type: string
+                  commit_sha:
+                    type: string
+                  commit_url:
+                    type: string
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
         '500':
           description: Internal error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
-
-components:
-  schemas:
-    TreeNode:
-      type: object
-      properties:
-        name:
-          type: string
-        path:
-          type: string
-        type:
-          type: string
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/TreeNode'

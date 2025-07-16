@@ -46,6 +46,10 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                  path:
+                    type: string
                   files:
                     type: array
                     items:
@@ -58,6 +62,8 @@ paths:
               examples:
                 success:
                   value:
+                    status: "success"
+                    path: ""
                     files:
                       - path: "backend/main.py"
                         type: "file"
@@ -120,11 +126,17 @@ paths:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                  path:
+                    type: string
                   content:
                     type: string
               examples:
                 success:
                   value:
+                    status: "success"
+                    path: "README.md"
                     content: "print('Hello from GitHub')"
         '400':
           description: Bad request
@@ -186,24 +198,26 @@ paths:
                 properties:
                   status:
                     type: string
-                  files:
+                  tree:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        path:
-                          type: string
-                        type:
-                          type: string
+                      $ref: '#/components/schemas/TreeNode'
               examples:
                 success:
                   value:
                     status: "success"
-                    files:
-                      - path: "backend/main.py"
-                        type: "file"
-                      - path: "backend/actions/"
+                    tree:
+                      - name: ".github"
+                        path: ".github"
                         type: "dir"
+                        children:
+                          - name: "workflows"
+                            path: ".github/workflows"
+                            type: "dir"
+                            children:
+                              - name: "test.yml"
+                                path: ".github/workflows/test.yml"
+                                type: "file"
         '400':
           description: Bad request
           content:
@@ -276,19 +290,17 @@ paths:
                 properties:
                   status:
                     type: string
-                  message:
-                    type: string
-                  commit_sha:
-                    type: string
-                  commit_url:
-                    type: string
+                  result:
+                    type: object
               examples:
                 success:
                   value:
                     status: "success"
-                    message: "File committed successfully"
-                    commit_sha: "f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
-                    commit_url: "https://github.com/your-org/your-repo/commit/f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
+                    result:
+                      content:
+                        sha: "f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
+                      commit:
+                        html_url: "https://github.com/your-org/your-repo/commit/f84a912fcd3f01bd4e8a3e5d5c1234567890abcd"
         '400':
           description: Bad request
           content:
@@ -307,3 +319,19 @@ paths:
                 properties:
                   detail:
                     type: string
+
+components:
+  schemas:
+    TreeNode:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/TreeNode'

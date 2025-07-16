@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_human": "GPT Gateway",
   "name_for_model": "gpt_gateway",
-  "description_for_human": "List, read, write and scan GitHub repo contents via GPT.",
-  "description_for_model": "Access GitHub repositories: list directory contents, read/write files, and recursively scan folders. Suitable for GPTs acting as software engineers.",
+  "description_for_human": "List, read, write, and scan GitHub repo contents via GPT.",
+  "description_for_model": "Perform GitHub repo operations including listing directories, reading/writing files, and scanning paths recursively. Designed for software engineering tasks.",
   "auth": {
     "type": "none"
   },
@@ -16,4 +16,3 @@
   "contact_email": "nomenaarison@gmail.com",
   "legal_info_url": "https://gpt-gateway-cigu.onrender.com/legal"
 }
-

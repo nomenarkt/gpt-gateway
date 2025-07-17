@@ -4,7 +4,7 @@ info:
   description: FastAPI middleware to list, read, write, and scan GitHub repositories for use in GPT Actions.
   version: 1.0.0
 servers:
-  - url: https://gpt-gateway-cigu.onrender.com/
+  - url: https://gpt-gateway-cigu.onrender.com
     description: Production server
 
 paths:

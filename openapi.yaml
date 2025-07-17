@@ -35,7 +35,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Success listing files
+          description: List of file and folder objects from the specified path.
           content:
             application/json:
               schema:
@@ -56,6 +56,10 @@ paths:
                           type: string
                         type:
                           type: string
+                      required:
+                        - name
+                        - patch
+                        - type
 
   /read-file/:
     get:

@@ -43,7 +43,9 @@ paths:
                 properties:
                   status:
                     type: string
-                  tree:
+                  path:
+                    type: string
+                  files:
                     type: array
                     items:
                       type: object
@@ -90,6 +92,8 @@ paths:
                 properties:
                   status:
                     type: string
+                  path:
+                    type: string
                   content:
                     type: string
 
@@ -103,6 +107,13 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - owner
+                - repo
+                - path
+                - branch
+                - content
+                - message
               properties:
                 owner:
                   type: string
@@ -117,6 +128,10 @@ paths:
                   type: string
                 message:
                   type: string
+                author_name:
+                  type: string
+                author_email:
+                  type: string
       responses:
         "200":
           description: File written successfully
@@ -127,8 +142,8 @@ paths:
                 properties:
                   status:
                     type: string
-                  message:
-                    type: string
+                  result:
+                    type: object
 
   /scan-repo/:
     post:
@@ -140,6 +155,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - owner
+                - repo
               properties:
                 owner:
                   type: string
@@ -173,3 +191,7 @@ paths:
                           type: string
                         type:
                           type: string
+                        children:
+                          type: array
+                          items:
+                            type: object

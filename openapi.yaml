@@ -165,7 +165,7 @@ paths:
     post:
       operationId: scanRepo
       summary: Recursively scan a GitHub repository and return its file tree
-      description: Returns the full recursive structure of a GitHub repository starting from the given path. **Note:** The tree is shown up to two levels deep in this schema for compatibility.
+      description: Returns the full recursive structure of a GitHub repository starting from the given path. **Note:** The tree is shown up to two levels deep in this schema for -compatibility.
       requestBody:
         required: true
         content:

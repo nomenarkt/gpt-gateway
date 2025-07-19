@@ -1,3 +1,9 @@
+Here’s an updated `README.md` reflecting your **Linode** deployment, with all `render.com` references removed and a generic deployment section added.
+This version also clarifies your actual endpoints and gives practical info for Linode/self-hosting.
+
+---
+
+````markdown
 # GPT Gateway
 
 **Bridge GPTs and GitHub Repositories**  
@@ -7,7 +13,7 @@ This FastAPI service enables GPT Actions or external agents to **list, read, wri
 
 ## 🌐 Live Endpoint
 
-> **Base URL**: [https://gpt-gateway-cigu.onrender.com](https://gpt-gateway-cigu.onrender.com)
+> **Base URL**: [https://nomena-gpt.xyz](https://nomena-gpt.xyz)
 
 ---
 
@@ -24,8 +30,8 @@ This FastAPI service enables GPT Actions or external agents to **list, read, wri
 
 ## 📁 API Reference
 
-- OpenAPI: [`/openapi.yaml`](https://gpt-gateway-cigu.onrender.com/openapi.yaml)
-- Plugin Manifest: [`/.well-known/ai-plugin.json`](https://gpt-gateway-cigu.onrender.com/.well-known/ai-plugin.json)
+- OpenAPI: [`/openapi.yaml`](https://nomena-gpt.xyz/openapi.yaml)
+- Plugin Manifest: [`/.well-known/ai-plugin.json`](https://nomena-gpt.xyz/.well-known/ai-plugin.json)
 
 ---
 
@@ -41,7 +47,7 @@ To function properly, your GitHub token must have the following scopes:
 | `Pull requests`     | ✅ Optional |
 | `Discussions`       | ✅ Optional |
 
-Set your token as an environment variable:
+Set your token as an environment variable (e.g., in `.env`):
 
 ```bash
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxx
@@ -56,6 +62,8 @@ We use `pytest` to test API endpoints with FastAPI's built-in `TestClient`.
 1. Install dependencies:
 
 ```bash
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 pip install pytest
 ```
@@ -72,20 +80,41 @@ pytest
 
 ```
 .
-├── actions/                  # FastAPI route modules
-├── services/                # GitHub API logic
-├── .well-known/             # ai-plugin.json for GPT integration
-├── openapi.yaml             # OpenAPI schema (GPT Action schema)
-├── main.py                  # App entrypoint
-└── test_main.py             # API test suite
+├── actions/                   # FastAPI route modules
+├── services/                  # GitHub API logic
+├── .well-known/               # ai-plugin.json for GPT integration
+├── openapi.yaml               # OpenAPI schema (GPT Action schema)
+├── main.py                    # App entrypoint
+└── test_main.py               # API test suite
 ```
 
 ---
 
-## 🛠️ Deployment (Render)
+## 🛠️ Deployment (Linode, or Any VPS)
 
-Configured via `render.yaml`.
-Ensure `.well-known/`, `openapi.yaml`, and `main.py` are in the root of your GitHub repo.
+1. **Clone this repository:**
+
+   ```bash
+   git clone https://github.com/nomenarkt/gpt-gateway.git
+   cd gpt-gateway
+   ```
+
+2. **Set up environment:**
+
+   * Place your `.env` with `GITHUB_TOKEN` in the root directory.
+
+3. **Start the FastAPI server:**
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   uvicorn main:app --host 127.0.0.1 --port 8000
+   ```
+
+4. **(Optional) Use `systemd` or Supervisor for production hosting.**
+
+5. **Configure Nginx as a reverse proxy (see `/etc/nginx/sites-available/default`).**
 
 ---
 

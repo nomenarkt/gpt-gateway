@@ -1,12 +1,13 @@
 openapi: 3.1.0
 info:
   title: GPT Gateway
-  description: FastAPI middleware to list, read, write, and recursively scan GitHub repositories. Enables GPT to navigate
-    file structures and edit code.
+  description: FastAPI middleware to list, read, write, and recursively scan GitHub repositories. Enables GPT to navigate file structures and edit code.
   version: 1.0.1
+
 servers:
   - url: https://nomena-gpt.xyz/
     description: GPT Gateway API root
+
 paths:
   /list-files/:
     get:
@@ -67,6 +68,7 @@ paths:
                         - name
                         - path
                         - type
+
   /read-file/:
     get:
       operationId: readFile
@@ -111,6 +113,7 @@ paths:
                     type: string
                   content:
                     type: string
+
   /write-file/:
     put:
       operationId: writeFile
@@ -157,11 +160,12 @@ paths:
                     type: string
                   result:
                     type: object
+
   /scan-repo/:
     post:
       operationId: scanRepo
       summary: Recursively scan a GitHub repository and return its file tree
-      description: Returns the full recursive structure of a GitHub repository starting from the given path.
+      description: Returns the full recursive structure of a GitHub repository starting from the given path. **Note:** The tree is shown up to two levels deep in this schema for compatibility.
       requestBody:
         required: true
         content:
@@ -201,6 +205,7 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/TreeNode"
+
 components:
   schemas:
     TreeNode:
@@ -215,4 +220,12 @@ components:
         children:
           type: array
           items:
-            $ref: "#/components/schemas/TreeNode"
+            type: object
+            properties:
+              name:
+                type: string
+              path:
+                type: string
+              type:
+                type: string
+              # Recursion stops here for tool compatibility; see docs for recursive structure.

@@ -1,5 +1,3 @@
-# services/github_api.py
-
 import os
 import base64
 import urllib.parse
@@ -21,11 +19,29 @@ HEADERS = {
 }
 
 
+def should_include_file(path: str, name: str) -> bool:
+    """
+    Return True if the given file should be read for full context.
+
+    - functional_spec.md (root)
+    - codex_task_tracker.md (root)
+    - any .md file in /docs/ (any depth)
+    """
+    # Normalize path for reliable matching
+    norm_path = path.lstrip("/")
+
+    # Root-level .mds (no '/')
+    if name.lower() in {"functional_spec.md", "codex_task_tracker.md"} and "/" not in norm_path:
+        return True
+
+    # docs/ at any depth, any .md
+    if norm_path.lower().startswith("docs/") and name.lower().endswith(".md"):
+        return True
+
+    return False
+
+
 async def get_file_sha(owner: str, repo: str, path: str, branch: str = "main") -> str | None:
-    """
-    Get SHA of a file at a specific path and branch.
-    Returns None if the file does not exist.
-    """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
 
     async with httpx.AsyncClient() as client:
@@ -49,9 +65,6 @@ async def write_file_to_repo(
     sha: str | None = None,
     author: dict | None = None,
 ):
-    """
-    Create or update a file on GitHub.
-    """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}"
     payload = {
         "message": message,
@@ -81,9 +94,6 @@ async def write_file_to_repo(
 
 
 async def list_files_in_path(owner: str, repo: str, path: str, branch: str = "main") -> list:
-    """
-    List contents of a directory path on GitHub.
-    """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
 
     async with httpx.AsyncClient() as client:
@@ -109,12 +119,10 @@ async def scan_repo_tree(
     """
     Recursively scan a GitHub repo path up to a given depth.
     Returns a nested list of files and folders.
+    If a file is important for GPT context, include its actual content as "content".
     """
     if current_depth > max_depth:
         return []
-
-
-    print(f"📂 Scanning: owner={owner}, repo={repo}, path={path}, depth={current_depth}")
 
     encoded_path = urllib.parse.quote(path)
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{encoded_path}?ref={branch}"
@@ -146,6 +154,11 @@ async def scan_repo_tree(
                 max_depth=max_depth,
                 current_depth=current_depth + 1
             )
+        elif item["type"] == "file" and should_include_file(item["path"], item["name"]):
+            try:
+                entry["content"] = await read_file_content(owner, repo, item["path"], branch)
+            except Exception as e:
+                entry["content_error"] = str(e)
 
         result.append(entry)
 
@@ -153,9 +166,6 @@ async def scan_repo_tree(
 
 
 async def read_file_content(owner: str, repo: str, path: str, branch: str = "main") -> str:
-    """
-    Read and decode a file's base64 content from GitHub.
-    """
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
 
     async with httpx.AsyncClient() as client:

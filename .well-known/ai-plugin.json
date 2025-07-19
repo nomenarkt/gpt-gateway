@@ -9,10 +9,10 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://gpt-gateway-cigu.onrender.com/openapi.yaml",
+    "url": "https://nomena-gpt.xyz/openapi.yaml",
     "has_user_authentication": false
   },
-  "logo_url": "https://gpt-gateway-cigu.onrender.com/logo.png",
+  "logo_url": "https://nomena-gpt.xyz/logo.png",
   "contact_email": "nomenaarison@gmail.com",
-  "legal_info_url": "https://gpt-gateway-cigu.onrender.com/legal"
+  "legal_info_url": "https://nomena-gpt.xyz/legal"
 }

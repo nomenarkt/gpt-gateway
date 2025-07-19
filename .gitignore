@@ -11,3 +11,19 @@ venv/
 
 # System
 .DS_Store
+
+.env
+
+# Editor files
+*.swp
+*.swo
+*.bak
+*~
+.idea/
+.vscode/
+
+# Test output
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/

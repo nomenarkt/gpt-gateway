@@ -1,12 +1,12 @@
 openapi: 3.1.0
 info:
   title: GPT Gateway
-  description: FastAPI middleware to list, read, write, and recursively scan GitHub repositories. Enables GPT to navigate file structures and edit code.
+  description: FastAPI middleware to list, read, write, and recursively scan GitHub repositories. Enables GPT to navigate
+    file structures and edit code.
   version: 1.0.1
 servers:
   - url: https://nomena-gpt.xyz/
     description: GPT Gateway API root
-
 paths:
   /list-files/:
     get:
@@ -29,15 +29,17 @@ paths:
         - name: path
           in: query
           required: false
-          description: Path inside the repository (default: root)
+          description: Path inside the repository
           schema:
             type: string
+            default: ""
         - name: branch
           in: query
           required: false
-          description: Git branch name (default: main)
+          description: Git branch name
           schema:
             type: string
+            default: main
       responses:
         "200":
           description: List of file and folder objects
@@ -65,7 +67,6 @@ paths:
                         - name
                         - path
                         - type
-
   /read-file/:
     get:
       operationId: readFile
@@ -92,9 +93,10 @@ paths:
         - name: branch
           in: query
           required: false
-          description: Branch name (default: main)
+          description: Branch name
           schema:
             type: string
+            default: main
       responses:
         "200":
           description: File content
@@ -109,7 +111,6 @@ paths:
                     type: string
                   content:
                     type: string
-
   /write-file/:
     put:
       operationId: writeFile
@@ -156,7 +157,6 @@ paths:
                     type: string
                   result:
                     type: object
-
   /scan-repo/:
     post:
       operationId: scanRepo
@@ -201,7 +201,6 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/TreeNode"
-
 components:
   schemas:
     TreeNode:

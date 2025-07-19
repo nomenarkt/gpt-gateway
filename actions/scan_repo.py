@@ -1,5 +1,3 @@
-# actions/scan_repo.py
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from services.github_api import scan_repo_tree
@@ -15,6 +13,10 @@ class ScanRepoPayload(BaseModel):
 
 @router.post("")
 async def scan_repo(payload: ScanRepoPayload):
+    """
+    Recursively scan the repo. If an .md file is considered "contextual" (see policy in github_api.py),
+    it will return its content in the output tree under 'content'.
+    """
     try:
         tree = await scan_repo_tree(
             owner=payload.owner,

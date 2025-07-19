@@ -1,9 +1,3 @@
-Here’s an updated `README.md` reflecting your **Linode** deployment, with all `render.com` references removed and a generic deployment section added.
-This version also clarifies your actual endpoints and gives practical info for Linode/self-hosting.
-
----
-
-````markdown
 # GPT Gateway
 
 **Bridge GPTs and GitHub Repositories**  

@@ -17,7 +17,7 @@ class WriteFilePayload(BaseModel):
     author_name: str = "GPT Agent"
     author_email: str = "gpt-agent@nomena.dev"
 
-@router.put("/")
+@router.put("")
 async def write_file(payload: WriteFilePayload):
     try:
         # Check if file exists (to get SHA for update)

@@ -113,6 +113,9 @@ async def scan_repo_tree(
     if current_depth > max_depth:
         return []
 
+
+    print(f"📂 Scanning: owner={owner}, repo={repo}, path={path}, depth={current_depth}")
+
     encoded_path = urllib.parse.quote(path)
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{encoded_path}?ref={branch}"
 

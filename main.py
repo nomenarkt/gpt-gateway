@@ -1,6 +1,7 @@
 # main.py
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -28,6 +29,17 @@ BASE_DIR = Path(__file__).resolve().parent
 WELL_KNOWN_DIR = BASE_DIR / ".well-known"
 if not WELL_KNOWN_DIR.is_dir():
     raise RuntimeError("Missing `.well-known` directory required for plugin manifest")
+
+
+def remove_trailing_slash_routes(app: FastAPI):
+    new_routes = []
+    for route in app.router.routes:
+        if isinstance(route, APIRoute):
+            if route.path != "/" and route.path.endswith("/"):
+                route.path = route.path.rstrip("/")
+        new_routes.append(route)
+    app.router.routes = new_routes
+
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -57,6 +69,9 @@ app.include_router(read_file_router, prefix="/read-file", tags=["Files"])
 app.include_router(scan_repo_router, prefix="/scan-repo", tags=["Repository"])
 app.include_router(write_file_router, prefix="/write-file", tags=["Files"])
 
+# Remove trailing slashes from registered routes
+remove_trailing_slash_routes(app)
+
 # Health check
 @app.get("/", tags=["Root"])
 def read_root():
@@ -70,7 +85,11 @@ def head_root():
 # Serve OpenAPI spec
 @app.get("/openapi.yaml", include_in_schema=False)
 def serve_openapi():
-    return FileResponse(BASE_DIR / "openapi.yaml", media_type="text/yaml")
+    return FileResponse(
+        BASE_DIR / "openapi.yaml",
+        media_type="application/yaml",
+        filename="openapi.yaml"
+    )
 
 # Serve ai-plugin.json from .well-known/
 app.mount(
@@ -78,3 +97,4 @@ app.mount(
     StaticFiles(directory=WELL_KNOWN_DIR, html=False),
     name="well-known"
 )
+

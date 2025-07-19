@@ -5,7 +5,7 @@ from services.github_api import list_files_in_path
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("")
 async def list_files(
     owner: str = Query(..., description="GitHub username or organization"),
     repo: str = Query(..., description="GitHub repository name"),

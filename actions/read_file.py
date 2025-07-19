@@ -5,7 +5,7 @@ from services.github_api import read_file_content
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("")
 async def read_file(
     owner: str = Query(..., description="GitHub username or organization"),
     repo: str = Query(..., description="GitHub repository name"),

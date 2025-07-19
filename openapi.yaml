@@ -1,41 +1,46 @@
 openapi: 3.1.0
 info:
   title: GPT Gateway
-  description: FastAPI middleware to list, read, write, and scan GitHub repositories for use in GPT Actions.
-  version: 1.0.0
+  description: FastAPI middleware to list, read, write, and recursively scan GitHub repositories. Enables GPT to navigate file structures and edit code.
+  version: 1.0.1
 servers:
-  - url: https://gpt-gateway-cigu.onrender.com
-    description: Production server
+  - url: https://nomena-gpt.xyz/
+    description: GPT Gateway API root
 
 paths:
   /list-files/:
     get:
       operationId: listFiles
       summary: List files in a GitHub repository path
+      description: Return a flat list of files and folders in a given path of a GitHub repository.
       parameters:
         - name: owner
           in: query
           required: true
+          description: GitHub username or organization
           schema:
             type: string
         - name: repo
           in: query
           required: true
+          description: Repository name
           schema:
             type: string
         - name: path
           in: query
           required: false
+          description: Path inside the repository (default: root)
           schema:
             type: string
         - name: branch
           in: query
           required: false
+          description: Git branch name (default: main)
           schema:
             type: string
       responses:
         "200":
-          description: List of file and folder objects from the specified path.
+          description: List of file and folder objects
           content:
             application/json:
               schema:
@@ -58,7 +63,7 @@ paths:
                           type: string
                       required:
                         - name
-                        - patch
+                        - path
                         - type
 
   /read-file/:
@@ -69,26 +74,30 @@ paths:
         - name: owner
           in: query
           required: true
+          description: GitHub username or organization
           schema:
             type: string
         - name: repo
           in: query
           required: true
+          description: Repository name
           schema:
             type: string
         - name: path
           in: query
           required: true
+          description: Full path to the file in the repo
           schema:
             type: string
         - name: branch
           in: query
           required: false
+          description: Branch name (default: main)
           schema:
             type: string
       responses:
         "200":
-          description: File content returned
+          description: File content
           content:
             application/json:
               schema:
@@ -123,11 +132,10 @@ paths:
                   type: string
                 repo:
                   type: string
-                path:
-                  type: string
                 branch:
                   type: string
-                  default: main
+                path:
+                  type: string
                 content:
                   type: string
                 message:
@@ -152,7 +160,8 @@ paths:
   /scan-repo/:
     post:
       operationId: scanRepo
-      summary: Recursively scan a GitHub repository path
+      summary: Recursively scan a GitHub repository and return its file tree
+      description: Returns the full recursive structure of a GitHub repository starting from the given path.
       requestBody:
         required: true
         content:
@@ -165,18 +174,22 @@ paths:
               properties:
                 owner:
                   type: string
+                  example: nomenarkt
                 repo:
                   type: string
+                  example: lamina
                 path:
                   type: string
+                  example: ""
                 branch:
                   type: string
+                  example: main
                 depth:
                   type: integer
-                  default: 5
+                  example: 2
       responses:
         "200":
-          description: Recursive structure returned
+          description: Recursive file tree
           content:
             application/json:
               schema:
@@ -187,15 +200,20 @@ paths:
                   tree:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        name:
-                          type: string
-                        path:
-                          type: string
-                        type:
-                          type: string
-                        children:
-                          type: array
-                          items:
-                            type: object
+                      $ref: "#/components/schemas/TreeNode"
+
+components:
+  schemas:
+    TreeNode:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/TreeNode"

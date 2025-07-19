@@ -13,7 +13,7 @@ class ScanRepoPayload(BaseModel):
     branch: str = "main"
     depth: int = 5     # Max depth to recurse
 
-@router.post("/")
+@router.post("")
 async def scan_repo(payload: ScanRepoPayload):
     try:
         tree = await scan_repo_tree(
